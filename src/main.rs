@@ -24,6 +24,7 @@ fn run_in_console() {
         println!("Preview:");
         table::print(&mapping, "Original", "New");
         println!("Press Enter to confirm the renaming...");
+        rename::apply(path, mapping);
         read_line();
     }
 }
