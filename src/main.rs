@@ -1,4 +1,4 @@
-use std::{path::Path, io::stdin, thread::panicking};
+use std::{path::Path, io::stdin};
 
 mod rename;
 mod table;
