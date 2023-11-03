@@ -1,4 +1,4 @@
-use std::{path::Path, io::stdin};
+use std::{path::Path, io::stdin, thread::panicking};
 
 mod rename;
 mod table;
@@ -17,15 +17,23 @@ fn test() {
 
 fn run_in_console() {
     loop {
-        println!("Input the parent folder: ");
+        println!("Input the parent folder(or left empty to quit the program): ");
         let path = read_line();
+        if path.len() == 0 {
+            break;
+        }
         let path = Path::new(&path);
         let mapping = rename::generate(path);
+        if mapping.is_empty() {
+            println!("No file needs to be renamed.");
+            continue;
+        }
         println!("Preview:");
         table::print(&mapping, "Original", "New");
         println!("Press Enter to confirm the renaming...");
-        rename::apply(path, mapping);
         read_line();
+        rename::apply(path, mapping);
+        println!("Renamed files in [{}] successfully.", path.display());
     }
 }
 
