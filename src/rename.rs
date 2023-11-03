@@ -41,7 +41,7 @@ pub fn generate(parent: &Path) -> HashMap<String, String>{
         }
         let zeros = digits - len;
         let mut new_name = String::new();
-        for _i in 0..zeros {
+        for _ in 0..zeros {
             new_name += "0";
         }
         new_name += &old_name;
