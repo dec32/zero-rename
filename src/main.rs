@@ -1,7 +1,6 @@
 use std::{path::Path, io::stdin};
-
+use rename::Rename;
 mod rename;
-mod table;
 
 fn main() {
     // test();
@@ -11,8 +10,8 @@ fn main() {
 #[allow(dead_code)]
 fn test() {
     let path = Path::new("C:\\Users\\Administrator\\Documents\\test");
-    let mapping = rename::generate(path);
-    table::print(&mapping, "Original", "New");
+    let rename = Rename::preview(path);
+    rename.print();
 }
 
 fn run_in_console() {
@@ -23,16 +22,16 @@ fn run_in_console() {
             break;
         }
         let path = Path::new(&path);
-        let mapping = rename::generate(path);
-        if mapping.is_empty() {
+        let rename = Rename::preview(path);
+        if rename.is_empty() {
             println!("No file needs to be renamed.");
             continue;
         }
         println!("Preview:");
-        table::print(&mapping, "Original", "New");
+        rename.print();
         println!("Press Enter to confirm the renaming...");
         read_line();
-        rename::apply(path, mapping);
+        rename.apply();
         println!("Renamed files in [{}] successfully.", path.display());
     }
 }
