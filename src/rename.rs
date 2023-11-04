@@ -36,6 +36,10 @@ impl Rename {
     pub fn is_empty(&self) -> bool {
         self.mapping.is_empty()
     }
+
+    pub fn mapping(&self) -> &Mapping {
+        &self.mapping
+    }
 }
 
 fn generate_mapping(parent: &Path) -> Result<Mapping>{

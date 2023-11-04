@@ -10,8 +10,8 @@ use rename::Rename;
 
 fn main() {
     // test();
-    ui::console::run();
-    // ui::win32::run();
+    // ui::console::run();
+    ui::win32::run(Some(Path::new("C:\\Users\\Administrator\\Documents\\test")));
 }
 
 #[allow(dead_code)]
