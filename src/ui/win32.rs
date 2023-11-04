@@ -1,7 +1,7 @@
-use std::{rc::Rc, path::Path, collections::HashMap, error};
+use std::{rc::Rc, path::Path, collections::HashMap, error, thread::panicking};
 
 use native_windows_gui as nwg;
-use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, InsertListViewItem, GridLayout};
+use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, InsertListViewItem, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}};
 
 use crate::{rename::Rename, errors::Error};
 
@@ -78,11 +78,15 @@ pub fn run(path :Option<&Path>) {
 
     // layout
     let mut main_layout = Default::default();
-    GridLayout::builder()
+    FlexboxLayout::builder()
         .parent(&window)
-        .child(0, 0, &preview)
-        .child(0, 1, &dir_chooser_btn)
-        .child(0, 2, &confirm_btn)
+        .flex_direction(FlexDirection::Column)
+        .child(&preview)
+            .child_size(Size { width: Dimension::Auto, height: Dimension::Points(400.0)})
+        .child(&dir_chooser_btn)
+            .child_size(Size { width: Dimension::Auto, height: Dimension::Points(40.0)})
+        .child(&confirm_btn)
+            .child_size(Size { width: Dimension::Auto, height: Dimension::Points(40.0)})
         .build(&mut main_layout).unwrap();
 
 
@@ -98,33 +102,34 @@ pub fn run(path :Option<&Path>) {
                     // to kill the whole process
                     nwg::stop_thread_dispatch();
                 },
-            Event::OnButtonClick => {
-                // FIXME some closure issue. variable cannot be captured
 
-                // if &handle == &dir_chooser_btn.handle {
-                //     println!("Choose Folder");
-                //     dir_chooser.run(Some(events_window.handle));
-                //     let path = dir_chooser.get_selected_item().unwrap();
-                //     let path = path.to_str().unwrap();
-                //     let path = Path::new(path);
-                //     match Rename::preview(path) {
-                //         Ok(value) => rename = Some(value),
-                //         Err(error) => {    
-                //             handle_error(error);
-                //             return;
-                //         }
-                //     }
-                //     // update_preview(&mut preview, rename.mapping())
-                // } else if &handle == &confirm_btn.handle {
-                //     println!("Confirm");
-                //     let Some(rename) = rename else {
-                //         println!("No folder");
-                //         return;
-                //     };
-                //     if let Err(err) = rename.apply() {
-                //         handle_error(err);
-                //     }
-                // }
+            // FIXME some closure issue. variable cannot be captured
+            Event::OnButtonClick => {    
+                if &handle == &dir_chooser_btn.handle {
+                    println!("Choose Folder");
+                    dir_chooser.run(Some(events_window.handle));
+                    let Ok(path) = dir_chooser.get_selected_item() else {
+                        return;
+                    };
+                    let path = Path::new(path.to_str().unwrap());
+                    // match Rename::preview(path) {
+                    //     Ok(value) => rename = Some(value),
+                    //     Err(error) => {    
+                    //         handle_error(error);
+                    //         return;
+                    //     }
+                    // }
+                    // update_preview(&mut preview, rename.mapping())
+                } else if &handle == &confirm_btn.handle {
+                    println!("Confirm");
+                    // let Some(rename) = rename else {
+                    //     println!("No folder");
+                    //     return;
+                    // };
+                    // if let Err(err) = rename.apply() {
+                    //     handle_error(err);
+                    // }
+                }
             },
             _ => {}
         }
