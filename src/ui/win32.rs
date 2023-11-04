@@ -1,4 +1,4 @@
-use std::{rc::Rc, path::Path, collections::HashMap, error, thread::panicking};
+use std::{rc::Rc, path::Path, collections::HashMap};
 
 use native_windows_gui as nwg;
 use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, InsertListViewItem, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}};
