@@ -1,25 +1,36 @@
-use std::{path::Path, collections::HashMap, fs, cmp, fmt::Display};
+use std::{path::Path, collections::HashMap, fs, cmp, fmt::Display, io::Read};
+use crate::errors::Result;
 
 #[allow(dead_code)]
+type Mapping = HashMap<String, String>;
+
 pub struct Rename {
     parent: Box<Path>,
-    mapping: HashMap<String, String>,
+    mapping: Mapping,
 }
 
 impl Rename {
-    fn new(parent: &Path, mapping: HashMap<String, String>) -> Rename {
+    fn new(parent: &Path, mapping: HashMap<String, String>) -> Self {
         Rename { parent: parent.into(), mapping }
     }
 
-    pub fn preview(parent: &Path) -> Rename {
-        let mapping = generate_mapping(parent);
-        Self::new(parent, mapping)
+    pub fn preview(parent: &Path) -> Result<Self> {
+        let mapping = generate_mapping(parent)?;
+        Ok(Self::new(parent, mapping))
     }
 
-    pub fn apply(&self) {
+    #[allow(dead_code)]
+    pub fn rename(parent: &Path) -> Result<Self>{
+        let rename = Self::preview(parent)?;
+        rename.apply()?;
+        Ok(rename)
+    }
+
+    pub fn apply(&self) -> Result<()>{
         for (old_name, new_name) in &self.mapping {
-            fs::rename(self.parent.join(old_name), self.parent.join(new_name)).unwrap()
+            fs::rename(self.parent.join(old_name), self.parent.join(new_name))?
         }
+        Ok(())
     }
 
     pub fn is_empty(&self) -> bool {
@@ -27,50 +38,66 @@ impl Rename {
     }
 }
 
-fn generate_mapping(parent: &Path) -> HashMap<String, String>{
-    let mut mapping = HashMap::new();
+fn generate_mapping(parent: &Path) -> Result<Mapping>{
+    let mut mapping = Mapping::new();
 
-    let mut old_name_to_len = HashMap::new();
-    let mut digits = 0;
+    let mut name_to_digits = HashMap::new();
+    let mut max_digits = 0;
     
-    let paths = fs::read_dir(parent).unwrap().map(|it|it.unwrap().path());
-    for path in paths {
+    let entries = fs::read_dir(parent)?;
+    for entry in entries {
+        let path = entry?.path();
         if path.is_dir() {
             continue;
         }
-        let stem = path.file_stem().unwrap().to_str().unwrap();
-        // TODO: hexa and shits
-        if stem.parse::<usize>().is_ok() {
-            let len = stem.len();
-            digits = cmp::max(digits, len);
-            let old_name = path.file_name().unwrap().to_str().unwrap().to_string();
-            old_name_to_len.insert(old_name, len);
+        let Some(stem) = path.file_stem() else {
+            // todo logging
+            continue;
+        };
+        let Some(stem) = stem.to_str() else {
+            // todo logging
+            continue;
+        };
+        if is_decimal_digits(stem) {
+            let digits = stem.len();
+            max_digits = cmp::max(max_digits, digits);
+            let name = path.file_name().unwrap().to_str().unwrap().to_string();
+            name_to_digits.insert(name, digits);
         }
     }
 
-    if digits <= 1 {
-        return mapping;
+    if max_digits <= 1 {
+        return Result::Ok(mapping);
     }
 
     // adding zeros
-    for (old_name, len) in old_name_to_len {
-        if len > digits {
+    for (name, digits) in name_to_digits {
+        if digits > max_digits {
             panic!("Something wrong with your program idiot.")
         }
-        if len == digits {
+        if digits == max_digits {
             continue;
         }
-        let zeros = digits - len;
-        let mut new_name = String::with_capacity(old_name.len() + zeros);
+        let zeros = max_digits - digits;
+        let mut new_name = String::with_capacity(name.len() + zeros);
         for _ in 0..zeros {
             new_name += "0";
         }
-        new_name += &old_name;
-        mapping.insert(old_name, new_name);
+        new_name += &name;
+        mapping.insert(name, new_name);
     }
-    return mapping;
+    return Result::Ok(mapping);
 }
 
+
+fn is_decimal_digits (text: &str) -> bool{
+    for ch in text.chars() {
+        if ch < '0' || ch > '9' {
+            return false;
+        }
+    }
+    return true;
+}
 
 impl Rename {
     pub fn print(&self) {
