@@ -1,4 +1,4 @@
-use std::{path::Path, collections::HashMap, fs, cmp, fmt::Display, io::Read};
+use std::{path::Path, collections::HashMap, fs, cmp, fmt::Display};
 use crate::errors::Result;
 
 #[allow(dead_code)]
