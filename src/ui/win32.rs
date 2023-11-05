@@ -1,17 +1,19 @@
-use std::{rc::Rc, path::Path, collections::HashMap};
+use std::{rc::Rc, path::Path, collections::HashMap, cell::Cell};
 
 use native_windows_gui as nwg;
-use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, InsertListViewItem, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}};
+use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, InsertListViewItem, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font};
 
 use crate::{rename::Rename, errors::Error};
 
 
+
 pub fn run(path :Option<&Path>) {
-    let mut rename = None;
+    // I hate rust
+    let mut rename = Cell::new(None);
     if let Some(path) = path {
-        match Rename::preview(path){
-            Ok(value) => rename = Some(value),
-            Err(error) => handle_error(error),
+        match Rename::preview(path) {
+            Ok(value) => rename.set(Some(value)),
+            Err(error) => handle_error(error)
         }
     }
 
@@ -48,7 +50,7 @@ pub fn run(path :Option<&Path>) {
     });
 
     // preview items
-    if let Some(rename) = rename {
+    if let Some(rename) = rename.get_mut() {
         update_preview(&mut preview, rename.mapping());
     }
 
@@ -90,20 +92,23 @@ pub fn run(path :Option<&Path>) {
         .build(&mut main_layout).unwrap();
 
 
+    // styling
+    Font::set_global_family("Segoe UI").unwrap();
+
+
 
     // what't the point of rc and clone tho?
     let window = Rc::new(window);
     let events_window = window.clone();
 
-    let handler = nwg::full_bind_event_handler(&window.handle, move |event, event_data, handle| {
+    let handler = nwg::full_bind_event_handler(&window.handle, move |event, _, handle| {
         match event {
             Event::OnWindowClose => 
                 if &handle == &events_window as &Window {
                     // to kill the whole process
                     nwg::stop_thread_dispatch();
                 },
-
-            // FIXME some closure issue. variable cannot be captured
+    
             Event::OnButtonClick => {    
                 if &handle == &dir_chooser_btn.handle {
                     println!("Choose Folder");
@@ -112,29 +117,32 @@ pub fn run(path :Option<&Path>) {
                         return;
                     };
                     let path = Path::new(path.to_str().unwrap());
-                    // match Rename::preview(path) {
-                    //     Ok(value) => rename = Some(value),
-                    //     Err(error) => {    
-                    //         handle_error(error);
-                    //         return;
-                    //     }
-                    // }
-                    // update_preview(&mut preview, rename.mapping())
+                    match Rename::preview(path) {
+                        Ok(ok) =>  {
+                            update_preview(&preview, ok.mapping());
+                            rename.set(Some(ok));
+                        }
+                        Err(error) => {    
+                            handle_error(error);
+                            return;
+                        }
+                    }
+                    
                 } else if &handle == &confirm_btn.handle {
                     println!("Confirm");
-                    // let Some(rename) = rename else {
-                    //     println!("No folder");
-                    //     return;
-                    // };
-                    // if let Err(err) = rename.apply() {
-                    //     handle_error(err);
-                    // }
+                    let rename = rename.take();
+                    let Some(rename) = rename else {
+                        println!("No folder");
+                        return;
+                    };
+                    if let Err(err) = rename.apply() {
+                        handle_error(err);
+                    }
                 }
             },
             _ => {}
         }
     });
-
     nwg::dispatch_thread_events();
     nwg::unbind_event_handler(&handler);
 }
@@ -158,7 +166,7 @@ fn new_name_item(index: i32, text: String) -> InsertListViewItem{
     }
 }
 
-fn update_preview(preview: &mut ListView, mapping: &HashMap<String, String>) {
+fn update_preview(preview: &ListView, mapping: &HashMap<String, String>) {
     preview.clear();
     let mut index = 0;
     for (old_name, new_name) in mapping {
