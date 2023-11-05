@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 mod rename;
 mod errors;
 mod ui {
@@ -7,7 +8,6 @@ mod ui {
 
 use std::{path::Path, env};
 use rename::Rename;
-
 fn main() {
     match env::args().nth(1) {
         None => ui::win32::run(),
@@ -17,9 +17,6 @@ fn main() {
             _ => rename_path(arg)
         }        
     }
-    // test();
-    // ui::console::run();
-    // ui::win32::run_under(Path::new("C:\\Users\\Administrator\\Documents\\test"));
 }
 
 fn rename_path(path: String) {
@@ -31,7 +28,6 @@ fn print_help() {
     println!("Use '-h' or '--help' to print help.");
     println!("Use '-i' or '--interact' to run the interactive CLI.");
     println!("Use path as argument to rename the files in it.");
-
 }
 
 #[allow(dead_code)]
