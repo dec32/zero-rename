@@ -1,6 +1,6 @@
 use std::{rc::Rc, path::Path, cell::Cell, ops::Deref};
 use native_windows_gui as nwg;
-use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem};
+use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem, Menu, Locale};
 use crate::{rename::Rename, errors::Error};
 
 
@@ -23,6 +23,7 @@ pub fn run_under(path:&Path) {
 struct App {
     // view
     window: Window,
+    menu: Menu,
     preview: ListView,
     dir_chooser: FileDialog,
     dir_chooser_btn: Button,
@@ -36,6 +37,7 @@ impl App {
     fn new() -> Self {
         let mut app = App {
             window: Default::default(),
+            menu: Default::default(),
             preview: Default::default(),
             dir_chooser: Default::default(),
             dir_chooser_btn: Default::default(),
@@ -108,7 +110,7 @@ impl App {
             index += 1;
         }
         let path = rename.parent().to_str().unwrap_or("");
-        self.window.set_text(format!("ZeroRename[{}]", path).as_str());
+        self.window.set_text(format!("ZeroRename [{}]", path).as_str());
         self.rename.set(Some(rename));
     }
 
@@ -118,28 +120,27 @@ impl App {
         Window::builder()
             .title("ZeroRename")
             .build(&mut self.window).unwrap();
-    
+
         // preview area
         self.preview = Default::default();
         ListView::builder()
             .parent(&self.window)
             .list_style(ListViewStyle::Detailed)
-            .build(&mut self.preview)
-            .unwrap();
+            .build(&mut self.preview).unwrap();
     
         // preview header
         self.preview.set_headers_enabled(true);
         self.preview.insert_column(InsertListViewColumn {
             index: Some(0),
             fmt: None,
-            width: None,
+            width: Some(200),
             text: Some(String::from("Original")),
         });
     
         self.preview.insert_column(InsertListViewColumn {
             index: Some(1),
             fmt: None,
-            width: None,
+            width: Some(200),
             text: Some(String::from("Renamed to")),
         });
     
@@ -169,20 +170,30 @@ impl App {
     
         // layout
         let mut main_layout = Default::default();
+        let btn_size = Size { width: Dimension::Auto, height: Dimension::Points(30.0)};
+        let preview_size = Size { width: Dimension::Auto, height: Dimension::Points(400.0)};
         FlexboxLayout::builder()
             .parent(&self.window)
             .flex_direction(FlexDirection::Column)
             .child(&self.preview)
-                .child_size(Size { width: Dimension::Auto, height: Dimension::Points(400.0)})
+                .child_size(preview_size)
+                // .child_min_size(preview_size)
+                .child_flex_grow(f32::MAX)
             .child(&self.dir_chooser_btn)
-                .child_size(Size { width: Dimension::Auto, height: Dimension::Points(40.0)})
+                .child_size(btn_size)
+                .child_min_size(btn_size)
             .child(&self.confirm_btn)
-                .child_size(Size { width: Dimension::Auto, height: Dimension::Points(40.0)})
+                .child_size(btn_size)
+                .child_min_size(btn_size)
             .build(&mut main_layout).unwrap();
     
     
         // styling
-        Font::set_global_family("Segoe UI").unwrap();
+        let mut btn_font = Font::default();
+        if let Ok(_) = Font::builder().family("Segoe UI").size(16).build(&mut btn_font) {
+            self.confirm_btn.set_font(Some(&btn_font));
+            self.dir_chooser_btn.set_font(Some(&btn_font));
+        }
 
     }
 }
