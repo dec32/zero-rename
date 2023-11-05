@@ -1,6 +1,6 @@
 use std::{rc::Rc, path::Path, cell::Cell, ops::Deref};
 use native_windows_gui as nwg;
-use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem, Menu, Locale};
+use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem};
 use crate::{rename::Rename, errors::Error};
 
 
@@ -11,6 +11,7 @@ pub fn run() {
     wrapper.run();
 }
 
+#[allow(dead_code)]
 pub fn run_under(path:&Path) {
     nwg::init().unwrap();
     let app = App::new();
@@ -23,7 +24,6 @@ pub fn run_under(path:&Path) {
 struct App {
     // view
     window: Window,
-    menu: Menu,
     preview: ListView,
     dir_chooser: FileDialog,
     dir_chooser_btn: Button,
@@ -37,7 +37,6 @@ impl App {
     fn new() -> Self {
         let mut app = App {
             window: Default::default(),
-            menu: Default::default(),
             preview: Default::default(),
             dir_chooser: Default::default(),
             dir_chooser_btn: Default::default(),
