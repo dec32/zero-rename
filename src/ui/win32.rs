@@ -1,9 +1,7 @@
-use std::{rc::Rc, path::Path, collections::HashMap, cell::Cell, f32::consts::E};
+use std::{rc::Rc, path::Path, collections::HashMap, cell::Cell};
 use native_windows_gui as nwg;
 use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, InsertListViewItem, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font};
 use crate::{rename::Rename, errors::Error};
-
-
 
 pub fn run(path :Option<&Path>) {
     // I hate rust
