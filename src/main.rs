@@ -11,7 +11,9 @@ use rename::Rename;
 fn main() {
     // test();
     // ui::console::run();
-    ui::win32::run(Some(Path::new("C:\\Users\\Administrator\\Documents\\test")));
+    // ui::win32::run();
+    ui::win32::run_under(Path::new("C:\\Users\\Administrator\\Documents\\test"));
+
 }
 
 #[allow(dead_code)]
