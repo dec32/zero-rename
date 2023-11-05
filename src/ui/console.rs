@@ -22,7 +22,7 @@ pub fn run() {
             continue;
         }
         println!("Preview:");
-        rename.print();
+        print!("{}", rename);
         println!("Press Enter to confirm the renaming...");
         read_line();
         let res = rename.apply();

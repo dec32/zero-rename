@@ -107,62 +107,76 @@ fn is_decimal_digits (text: &str) -> bool{
     return true;
 }
 
-impl Rename {
-    pub fn print(&self) {
-        let key_col = "Original";
-        let val_col = "New";
 
-        let key_width = cmp::max(key_col.len(), self.mapping.keys().map(|it|it.len()).max().unwrap_or(0));
-        let val_width = cmp::max(val_col.len(), self.mapping.values().map(|it|it.len()).max().unwrap_or(0));
-    
-        // head
-        print!("| ");
-        print_fill(key_col, key_width);
-        print!(" | ");
-        print_fill(val_col, val_width);
-        print!(" |");
-        println();
-    
-        print!("|-");
-        fill('-',key_width);
-        print!("-|-");
-        fill('-',val_width);
-        print!("-|");
-        println();
-    
-        // body
-        for (key, val) in &self.mapping {
-            print!("| ");
-            print_fill(&key, key_width);
-            print!(" | ");
-            print_fill(&val, val_width);
-            print!(" |");
-            println();
-        }
-    
-        #[inline]
-        fn print_fill(content: &str, len:usize) {
-            print!("{}", content);
-            fill(' ', len-content.len());
-        }
-    
-        #[inline]
-        fn fill(filler:char, len:usize) {
-            for _ in 0..len {
-                print!("{}", filler);
-            }
-        }
-    
-        #[inline]
-        fn println() {
-            print!("\n")
-        }
+impl Display for Rename {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
     }
 }
 
-// how the hell should i implement this thing?
-impl Display for Rename {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+impl Rename {
+    fn to_string(&self) -> String {
+        let key_col = "Original";
+        let val_col = "Renamed To";
+        let key_width = cmp::max(key_col.len(), self.mapping.keys().map(|it|it.len()).max().unwrap_or(0));
+        let val_width = cmp::max(val_col.len(), self.mapping.values().map(|it|it.len()).max().unwrap_or(0));
+
+        let line_len = "| ".len() + key_width + " | ".len() + val_width + " |\n".len();
+        let estimated_len = line_len * (2 + self.mapping.len());
+
+        let mut buf = String::with_capacity(estimated_len);
+        let s = &mut buf;
+
+        append(s, "| ");
+        fill_up(s, key_col, key_width);
+        append(s, " | ");
+        fill_up(s, val_col, val_width);
+        append(s, " |");
+        new_line(s);
+    
+        append(s, "|-");
+        fill_with(s, '-',key_width);
+        append(s, "-|-");
+        fill_with(s, '-',val_width);
+        append(s, "-|");
+        new_line(s);
+    
+        // body
+        for (key, val) in &self.mapping {
+            append(s, "| ");
+            fill_up(s, &key, key_width);
+            append(s, " | ");
+            fill_up(s, &val, val_width);
+            append(s, " |");
+            new_line(s);
+        }
+        buf
+    }
+}
+
+
+// a few functions to make things easier
+#[inline]
+fn append(s: &mut String, text: &str) {
+    *s += text;
+}
+
+#[inline]
+fn new_line(s: &mut String) {
+    s.push('\n')
+}
+
+#[inline]
+fn fill_up(s: &mut String, text: &str, len: usize) {
+    append(s, text);
+    for _ in 0..len-text.len() {
+        s.push(' ');
+    }
+}
+
+#[inline]
+fn fill_with(s: &mut String, filler: char, len: usize) {
+    for _ in 0..len {
+        s.push(filler);
     }
 }

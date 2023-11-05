@@ -10,9 +10,9 @@ use rename::Rename;
 
 fn main() {
     // test();
-    // ui::console::run();
+    ui::console::run();
     // ui::win32::run();
-    ui::win32::run_under(Path::new("C:\\Users\\Administrator\\Documents\\test"));
+    // ui::win32::run_under(Path::new("C:\\Users\\Administrator\\Documents\\test"));
 
 }
 
@@ -20,5 +20,5 @@ fn main() {
 fn test() {
     let path = Path::new("C:\\Users\\Administrator\\Documents\\test");
     let rename = Rename::preview(path).unwrap();
-    rename.print();
+    print!("{}", rename)
 }
