@@ -40,6 +40,10 @@ impl Rename {
     pub fn mapping(&self) -> &Mapping {
         &self.mapping
     }
+
+    pub fn parent(&self) -> &Path {
+        &self.parent
+    }
 }
 
 fn generate_mapping(parent: &Path) -> Result<Mapping>{

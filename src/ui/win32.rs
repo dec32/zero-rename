@@ -1,19 +1,17 @@
-use std::{rc::Rc, path::Path, collections::HashMap, cell::Cell};
-
+use std::{rc::Rc, path::Path, collections::HashMap, cell::Cell, f32::consts::E};
 use native_windows_gui as nwg;
 use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, InsertListViewItem, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font};
-
 use crate::{rename::Rename, errors::Error};
 
 
 
 pub fn run(path :Option<&Path>) {
     // I hate rust
-    let mut rename = Cell::new(None);
+    let mut rename_cell = Cell::new(None);
     if let Some(path) = path {
         match Rename::preview(path) {
-            Ok(value) => rename.set(Some(value)),
-            Err(error) => handle_error(error)
+            Ok(rename) => rename_cell.set(Some(rename)),
+            Err(error) => alert_error("Failed to infer the files to be renamed.", error)
         }
     }
 
@@ -50,7 +48,7 @@ pub fn run(path :Option<&Path>) {
     });
 
     // preview items
-    if let Some(rename) = rename.get_mut() {
+    if let Some(rename) = rename_cell.get_mut() {
         update_preview(&mut preview, rename.mapping());
     }
 
@@ -95,7 +93,8 @@ pub fn run(path :Option<&Path>) {
     // styling
     Font::set_global_family("Segoe UI").unwrap();
 
-
+    // update ui
+    update_ui(&preview, &window, rename_cell.get_mut());
 
     // what't the point of rc and clone tho?
     let window = Rc::new(window);
@@ -118,31 +117,45 @@ pub fn run(path :Option<&Path>) {
                     };
                     let path = Path::new(path.to_str().unwrap());
                     match Rename::preview(path) {
-                        Ok(ok) =>  {
-                            update_preview(&preview, ok.mapping());
-                            rename.set(Some(ok));
+                        Ok(rename) =>  {
+                            let rename = Some(rename);
+                            update_ui(&preview, &events_window, &rename);
+                            rename_cell.set(rename);
                         }
                         Err(error) => {    
-                            handle_error(error);
+                            alert_error("Failed to infer the files to be renamed.", error);
                             return;
                         }
                     }
                     
                 } else if &handle == &confirm_btn.handle {
                     println!("Confirm");
-                    let rename = rename.take();
+                    let rename = rename_cell.take();
                     let Some(rename) = rename else {
-                        println!("No folder");
+                        alert_msg("Please choose the folder cotaining the files you want to rename.");
                         return;
                     };
-                    if let Err(err) = rename.apply() {
-                        handle_error(err);
+                    match rename.apply() {
+                        Ok(_) => {
+                            if rename.is_empty() {
+                                alert_msg("No file needs to be renamed")
+                            } else {
+                                alert_msg("Renamed the files successfully.");
+                            }
+                            let rename = None;
+                            update_ui(&preview, &events_window, &rename);
+                            rename_cell.set(rename);
+                        },
+                        Err(error) => {
+                            alert_error("Failed to rename the files.", error);
+                        }
                     }
                 }
             },
             _ => {}
         }
     });
+
     nwg::dispatch_thread_events();
     nwg::unbind_event_handler(&handler);
 }
@@ -166,6 +179,18 @@ fn new_name_item(index: i32, text: String) -> InsertListViewItem{
     }
 }
 
+fn update_ui(preview: &ListView, window: &Window, rename: &Option<Rename>) {
+    if let Some(rename) = rename {
+        preview.clear();
+        update_preview(preview, rename.mapping());
+        let path = rename.parent().to_str().unwrap_or("");
+        window.set_text(format!("ZeroRename[{}]", path).as_str());
+    } else {
+        preview.clear();
+        window.set_text("ZeroRename");
+    }
+}
+
 fn update_preview(preview: &ListView, mapping: &HashMap<String, String>) {
     preview.clear();
     let mut index = 0;
@@ -176,6 +201,12 @@ fn update_preview(preview: &ListView, mapping: &HashMap<String, String>) {
     }
 }
 
-fn handle_error(error: Error) {
+
+fn alert_msg(msg: &str) {
+    nwg::simple_message("Message", msg);
+}
+
+fn alert_error(msg: &str, error: Error) {
+    nwg::simple_message("Error", msg);
     println!("{}", error)
 }
