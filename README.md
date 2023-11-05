@@ -7,9 +7,17 @@ Add leading zeros to numeric file names so that all of them have the same amount
 
 [Windows 64-bit](https://github.com/dec32/zero-rename/releases/download/v0.1/zero-rename.exe)
 
+
+## Screenshot
+
+![](docs/screenshot.png)
+
+
 ## Usage
 
-Assume you have a folder you want to handle:
+Notice: This section is for the CLI version.
+
+Assume you have a folder with files you want to rename:
 
 ```
 C:/
@@ -20,7 +28,7 @@ C:/
    └─ 100.jpg
 ```
 
-Simply open zero-rename.exe. Type in the path and press Enter twice. The console is now like:
+Use command `zero-rename -i` or `zero-rename --interact` to enter the interactive command-line interface. Input in the path and press enter to confirm as suggested. The console is now like:
 
 ```
 Input the parent folder(or left empty to quit the program):
@@ -48,4 +56,4 @@ C:/
    └─ 100.jpg
 ```
 
-Maybe someday I will make a GUI for it but not today.
+Meanwhile, you can also use command `zero-rename C:\pictures` to rename the files in it.
