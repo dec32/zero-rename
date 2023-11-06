@@ -1,17 +1,20 @@
 # Zero Rename
 
-Add leading zeros to numeric file names so that all of them have the same amount of digits, making the ASCII order of them identical to the numerical one.
+<div align="center">
+   <img src="res/icon.png" width="96" height="96" />
+</div>
 
+Add leading zeros to numeric file names so that all of them have the same amount of digits, making the ASCII order of them identical to the numerical one.
 
 ## Download
 
 [Windows 64-bit](https://github.com/dec32/zero-rename/releases/download/v0.1/zero-rename.exe)
 
-
 ## Screenshot
 
-![](docs/screenshot.png)
-
+<div align="center">
+    <img src="docs/screenshot.png">
+</div>
 
 ## Usage
 
