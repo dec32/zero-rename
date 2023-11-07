@@ -1,6 +1,6 @@
 use std::{rc::Rc, path::Path, cell::Cell, ops::Deref};
 use native_windows_gui as nwg;
-use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem, Menu, EmbedResource};
+use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem, Menu, EmbedResource, DropFiles};
 use crate::{rename::Rename, errors::Error};
 
 
@@ -56,6 +56,27 @@ impl App {
             return;
         };
         let path = Path::new(&path);
+        self.switch_dir(path);
+    }
+
+    fn drop_files(&self, drop_file: &DropFiles) {
+        let paths = drop_file.files();
+        if paths.len() == 0 {
+            return;
+        }
+        if paths.len() > 1 {
+            if paths.iter().map(Path::new).any(Path::is_file) {
+                alert_msg("Please do not drop multiple folders or any file.");
+            } else {
+                alert_msg("Please do not drop multiple folders at once.");
+            }
+            return;
+        }
+        let path = Path::new(&paths[0]);
+        if path.is_file() {
+            alert_msg("Please do not drop any files.");
+            return;
+        }
         self.switch_dir(path);
     }
 
@@ -126,6 +147,7 @@ impl App {
         Window::builder()
             .title("ZeroRename")
             .icon(icon)
+            .accept_files(true)
             .build(&mut self.window).unwrap();
 
         // menu
@@ -219,7 +241,7 @@ impl AppWrapper {
 
     fn run (&self) {
         let app = Rc::downgrade(&self.app);
-        let handler = nwg::full_bind_event_handler(&self.app.window.handle, move |event, _, handle| {
+        let handler = nwg::full_bind_event_handler(&self.app.window.handle, move |event, event_data, handle| {
             let Some(app) = app.upgrade() else {
                 return;
             };
@@ -230,6 +252,9 @@ impl AppWrapper {
                 Event::OnButtonClick => {
                     if &handle == &app.dir_chooser_btn.handle {app.choose_dir()}
                     else if &handle == &app.confirm_btn.handle {app.confirm()}
+                }
+                Event::OnFileDrop => {
+                    app.drop_files(&event_data.on_file_drop())
                 }
                 _ => {}
             }

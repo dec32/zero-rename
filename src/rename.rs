@@ -1,8 +1,8 @@
-use std::{path::Path, collections::HashMap, fs, cmp, fmt::Display};
+use std::{path::Path, collections::{HashMap, BTreeMap}, fs, cmp, fmt::Display};
 use crate::errors::Result;
 
 #[allow(dead_code)]
-type Mapping = HashMap<String, String>;
+type Mapping = BTreeMap<String, String>;
 
 pub struct Rename {
     parent: Box<Path>,
@@ -10,7 +10,7 @@ pub struct Rename {
 }
 
 impl Rename {
-    fn new(parent: &Path, mapping: HashMap<String, String>) -> Self {
+    fn new(parent: &Path, mapping: Mapping) -> Self {
         Rename { parent: parent.into(), mapping }
     }
 
