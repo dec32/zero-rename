@@ -1,4 +1,4 @@
-use std::{rc::Rc, path::Path, cell::Cell, ops::Deref};
+use std::{rc::Rc, path::Path, cell::Cell, ops::Deref, env};
 use native_windows_gui as nwg;
 use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem, Menu, EmbedResource, DropFiles};
 use crate::{rename::Rename, errors::Error};
@@ -7,15 +7,14 @@ use crate::{rename::Rename, errors::Error};
 pub fn run() {
     nwg::init().unwrap();
     let app = App::new();
-    let wrapper = AppWrapper::new(app);
-    wrapper.run();
-}
-
-#[allow(dead_code)]
-pub fn run_under(path:&Path) {
-    nwg::init().unwrap();
-    let app = App::new();
-    app.switch_dir(path);
+    if let Some(path) = env::args().nth(1) {
+        let path = Path::new(&path);
+        if path.is_dir()  {
+            app.switch_dir(path);
+        } else {
+            alert_msg("Only a folder can be openned with ZeroRename.")
+        }
+    }
     let wrapper = AppWrapper::new(app);
     wrapper.run();
 }
