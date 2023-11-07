@@ -8,6 +8,10 @@ edition = "2021"
 [dependencies]
 native-windows-gui = "1.0.12"
 
+
+[build-dependencies]
+winres = "0.1"
+
 [profile.release]
 opt-level = "z"
 lto = true
