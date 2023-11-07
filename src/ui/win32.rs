@@ -1,6 +1,6 @@
 use std::{rc::Rc, path::Path, cell::Cell, ops::Deref};
 use native_windows_gui as nwg;
-use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem};
+use nwg::{Window, Button, Event, FileDialog, FileDialogAction, ListView, InsertListViewColumn, ListViewStyle, FlexboxLayout, stretch::{style::{FlexDirection, Dimension}, geometry::Size}, Font, InsertListViewItem, Menu, EmbedResource};
 use crate::{rename::Rename, errors::Error};
 
 
@@ -24,6 +24,8 @@ pub fn run_under(path:&Path) {
 struct App {
     // view
     window: Window,
+    #[allow(dead_code)]
+    menu: Menu,
     preview: ListView,
     dir_chooser: FileDialog,
     dir_chooser_btn: Button,
@@ -37,6 +39,7 @@ impl App {
     fn new() -> Self {
         let mut app = App {
             window: Default::default(),
+            menu: Default::default(),
             preview: Default::default(),
             dir_chooser: Default::default(),
             dir_chooser_btn: Default::default(),
@@ -73,14 +76,14 @@ impl App {
     fn confirm(&self) {
         let rename = self.rename.take();
         let Some(rename) = rename else {
-            alert_msg("Please choose the folder cotaining the files you want to rename.");
+            alert_msg("Please choose the folder containing the files you want to rename.");
             self.rename.set(rename);
             return;
         };
         match rename.apply() {
             Ok(_) => {
                 if rename.is_empty() {
-                    alert_msg("No file needs to be renamed")
+                    alert_msg("No file needs to be renamed.")
                 } else {
                     alert_msg("Renamed the files successfully.");
                 }
@@ -113,15 +116,25 @@ impl App {
         self.rename.set(Some(rename));
     }
 
+
     fn build_ui(&mut self) {
         // main window
-        self.window = Default::default();
+        let icon = EmbedResource::load(None)
+            .ok()
+            .and_then(|resource|resource.icon_str("ICON", None));
+        let icon = icon.as_ref();
         Window::builder()
             .title("ZeroRename")
+            .icon(icon)
             .build(&mut self.window).unwrap();
 
+        // menu
+        // Menu::builder()
+        //     .parent(&self.window)
+        //     .text("Settings")
+        //     .build(&mut self.menu).unwrap();
+    
         // preview area
-        self.preview = Default::default();
         ListView::builder()
             .parent(&self.window)
             .list_style(ListViewStyle::Detailed)
@@ -144,7 +157,6 @@ impl App {
         });
     
         // dir chooser btn
-        self.dir_chooser_btn = Default::default();
         Button::builder()
             .parent(&self.window)
             .text("Choose Folder")
@@ -152,7 +164,6 @@ impl App {
     
     
         // dir chooser
-        self.dir_chooser = Default::default();
         FileDialog::builder()
             .action(FileDialogAction::OpenDirectory)
             .multiselect(false)
@@ -160,7 +171,6 @@ impl App {
     
     
         // confirm button
-        self.confirm_btn = Default::default();
         Button::builder()
             .parent(&self.window)
             .text("Confirm")
