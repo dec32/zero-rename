@@ -8,8 +8,9 @@ Add leading zeros to numeric file names so that all of them have the same amount
 
 ## Download
 
-- [Windows 64-bit](https://github.com/dec32/zero-rename/releases/download/v0.1/ZeroRename.exe)
-- [Windows 64-bit (CLI version)](https://github.com/dec32/zero-rename/releases/download/v0.1/zr.exe)
+[![[Windows 64-bit]](https://img.shields.io/badge/DOWNLOAD-win--x64-blue)](https://github.com/dec32/zero-rename/releases/download/v0.1/ZeroRename.exe)
+
+[![[Windows 64-bit]](https://img.shields.io/badge/DOWNLOAD-win--x64_(CLI_version)-blue)](https://github.com/dec32/zero-rename/releases/download/v0.1/zr.exe)
 
 ## Screenshot
 
